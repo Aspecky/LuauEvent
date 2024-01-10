@@ -4,11 +4,11 @@ A faster and more equipped Luau implementation of [BindableEvent](https://create
 # Why?
 Besides being a lot lighter and a lot faster than `BindableEvent`, the main motive for using this over other signal implementations is to keep methods like `:Fire` hidden from objects that have events, so instead of your events looking like this:
 
-![before](images\before.png)
+![before](images/before.png)
 
 They would instead look like this:
 
-![before](images\after.png)
+![after](images/after.png)
 
 Which makes a lot more sense given that typically the usage of `:Fire` is internal only.
 
