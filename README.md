@@ -47,3 +47,12 @@ event.Event:Connect(print, "Hello")
 
 event:Fire("world!") --> Hello world!
 ```
+
+# Installation
+## Wally
+You may find the wally link here:<br>
+https://wally.run/package/aspecky/luauevent
+
+## Rbxm
+You may find the rbxm in the releases here:<br>
+https://github.com/Aspecky/LuauEvent/releases
