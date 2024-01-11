@@ -3,9 +3,8 @@
 layout: home
 
 hero:
-  name: "LuauEvent"
-  text: "LuauEvent"
-  tagline: My great project tagline
+  text: LuauEvent
+  tagline: A highly optimized Luau implementation of BindableEvent
   actions:
     - theme: brand
       text: Markdown Examples
@@ -15,7 +14,7 @@ hero:
       link: /api-examples
 
 features:
-  - title: Feature A
+  - title: ⚡ Optimized
     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
   - title: Feature B
     details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
