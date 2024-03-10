@@ -25,7 +25,7 @@ export type Event<T...> = {
 local Connection = {}
 Connection.__index = Connection
 
-local function disconnect(self)
+local function Disconnect(self)
 	if not self.Connected then
 		return
 	end
@@ -46,8 +46,9 @@ local function disconnect(self)
 		event._head = next
 	end
 end
+Connection.Disconnect = Disconnect
 
-local function reconnect(self)
+local function Reconnect(self)
 	if self.Connected then
 		return
 	end
@@ -63,15 +64,13 @@ local function reconnect(self)
 	self._next = head
 	self._prev = false
 end
-
-Connection.Disconnect = disconnect
-Connection.Reconnect = reconnect
+Connection.Reconnect = Reconnect
 
 --\\ Signal //--
 local Signal = {}
 Signal.__index = Signal
 
-local function connect(self, fn, ...)
+local function Connect(self, fn, ...)
 	local event = self._event
 	local head = event._head
 	local cn = setmetatable({
@@ -90,31 +89,28 @@ local function connect(self, fn, ...)
 
 	return cn
 end
+Signal.Connect = Connect
 
-local function once(self, fn, ...)
-	-- Implement :Once() in terms of a connection which disconnects
-	-- itself before running the handler.
+local function Once(self, fn, ...)
 	local cn
-	cn = connect(self, function(...)
-		disconnect(cn)
+	cn = Connect(self, function(...)
+		Disconnect(cn)
 		fn(...)
 	end, ...)
 	return cn
 end
+Signal.Once = Once
 
-local function wait(self)
+local function Wait(self)
 	local thread = coroutine.running()
 	local cn
-	cn = connect(self, function(...)
-		disconnect(cn)
+	cn = Connect(self, function(...)
+		Disconnect(cn)
 		task.spawn(thread, ...)
 	end)
 	return coroutine.yield()
 end
-
-Signal.Connect = connect
-Signal.Once = once
-Signal.Wait = wait
+Signal.Wait = Wait
 
 --\\ Event //--
 local Event = {}
@@ -128,31 +124,33 @@ local rbxConnect, rbxDisconnect do
 	rbxDisconnect = cn.Disconnect
 end
 
-local function executeCallback(signal, fn, ...)
-	local acquiredRunnerThread = signal._callerThread
-	signal._callerThread = false
-	fn(...)
-	signal._callerThread = acquiredRunnerThread
+local freeThreads: { thread } = {}
+
+local function runCallback(callback, thread, ...)
+	callback(...)
+	table.insert(freeThreads, thread)
 end
 
-local function callbackQueuer(signal, ...)
-	executeCallback(signal, ...)
+local function yielder()
 	while true do
-		executeCallback(coroutine.yield())
+		runCallback(coroutine.yield())
 	end
 end
 
-local function fire(self, ...)
+local function Fire(self, ...)
 	local cn = self._head
 	while cn do
-		local callerThread = self._callerThread
-		if not callerThread then
-			self._callerThread = coroutine.create(callbackQueuer)
-			callerThread = self._callerThread
+		local thread
+		if #freeThreads > 0 then
+			thread = freeThreads[#freeThreads]
+			freeThreads[#freeThreads] = nil
+		else
+			thread = coroutine.create(yielder)
+			coroutine.resume(thread)
 		end
 
 		if not cn._varargs then
-			task.spawn(callerThread, self, cn._fn, ...)
+			task.spawn(thread, self, cn._fn, ...)
 		else
 			local args = cn._varargs
 			local len = #args
@@ -162,7 +160,7 @@ local function fire(self, ...)
 				args[count] = value
 			end
 
-			task.spawn(callerThread, self, cn._fn, table.unpack(args))
+			task.spawn(thread, self, cn._fn, table.unpack(args))
 
 			for i = count, len + 1, -1 do
 				args[i] = nil
@@ -172,45 +170,42 @@ local function fire(self, ...)
 		cn = cn._next
 	end
 end
+Event.Fire = Fire
 
-local function disconnectAll(self)
+local function DisconnectAll(self)
 	local cn = self._head
 	while cn do
-		disconnect(cn)
+		Disconnect(cn)
 		cn = cn._next
 	end
 end
+Event.DisconnectAll = DisconnectAll
 
-local function destroy(self)
-	disconnectAll(self)
+local function Destroy(self)
+	DisconnectAll(self)
 	local cn = self.RBXScriptConnection
 	if cn then
 		rbxDisconnect(cn)
 		self.RBXScriptConnection = nil
 	end
 end
+Event.Destroy = Destroy
 
---\\ Constructors
 function Event.new<T...>(): Event<T...>
-	local self = setmetatable({ _head = false, _callerThread = false }, Event)
+	local self = setmetatable({ _head = false }, Event)
 	self.Event = setmetatable({ _event = self }, Signal)
 	return self
 end
 
 function Event.wrap<T...>(signal: RBXScriptSignal): Event<T...>
-	local self = setmetatable({ _head = false, _callerThread = false }, Event)
+	local self = setmetatable({ _head = false }, Event)
 	self.Event = setmetatable({ _event = self }, Signal)
 
 	self.RBXScriptConnection = rbxConnect(signal, function(...)
-		fire(self, ...)
+		Fire(self, ...)
 	end)
 
 	return self
 end
-
---\\ Methods
-Event.Fire = fire
-Event.DisconnectAll = disconnectAll
-Event.Destroy = destroy
 
 return { new = Event.new, wrap = Event.wrap }

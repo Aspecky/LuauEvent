@@ -1,0 +1,6 @@
+{
+    "name": "LuauEvent",
+    "tree": {
+        "$path": "src/LuauEvent.lua"
+    }
+}

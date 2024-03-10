@@ -1,10 +1,12 @@
 [package]
 name = "aspecky/luauevent"
-version = "1.0.0"
+version = "1.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
-authors = ["Aspecky"]
-
+author = "Aspecky"
 description = "A faster and more equipped Luau implementation of BindableEvent"
+
+exclude = ["**"]
+include = ["default.project.json", "src", "src/**", "LICENSE", "wally.toml"]
 
 [dependencies]
