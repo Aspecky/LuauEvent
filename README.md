@@ -13,8 +13,6 @@ They would instead look like this:
 Which makes a lot more sense given that typically the usage of `:Fire` is internal only.
 
 # Features
-This isnt your usual run-of-the-mill implementation either, it has per signal coroutine optimization to make `:Fire` go brrr and has two new features.
-
 ## Reconnect
 You take connect, you prefix it with a re, and you got yourself a handy method for reconnecting disconnected connections!
 ```lua
