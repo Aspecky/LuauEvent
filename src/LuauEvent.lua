@@ -150,7 +150,7 @@ local function Fire(self, ...)
 		end
 
 		if not cn._varargs then
-			task.spawn(thread, self, cn._fn, ...)
+			task.spawn(thread, cn._fn, ...)
 		else
 			local args = cn._varargs
 			local len = #args
@@ -160,7 +160,7 @@ local function Fire(self, ...)
 				args[count] = value
 			end
 
-			task.spawn(thread, self, cn._fn, table.unpack(args))
+			task.spawn(thread, cn._fn, table.unpack(args))
 
 			for i = count, len + 1, -1 do
 				args[i] = nil
