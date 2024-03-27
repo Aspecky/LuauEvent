@@ -8,8 +8,8 @@ export type Connection<U...> = {
 }
 
 export type Signal<T...> = {
-	Connect: <U...>(self: Signal<T...>, fn: (...unknown) -> (), U...) -> Connection<U...>,
-	Once: <U...>(self: Signal<T...>, fn: (...unknown) -> (), U...) -> Connection<U...>,
+	Connect: <U...>(self: Signal<T...>, fn: (...any) -> (), U...) -> Connection<U...>,
+	Once: <U...>(self: Signal<T...>, fn: (...any) -> (), U...) -> Connection<U...>,
 	Wait: (self: Signal<T...>) -> T...,
 }
 
@@ -150,7 +150,7 @@ local function Fire(self, ...)
 		end
 
 		if not cn._varargs then
-			task.spawn(thread, cn._fn, ...)
+			task.spawn(thread, cn._fn, thread, ...)
 		else
 			local args = cn._varargs
 			local len = #args
@@ -160,7 +160,7 @@ local function Fire(self, ...)
 				args[count] = value
 			end
 
-			task.spawn(thread, cn._fn, table.unpack(args))
+			task.spawn(thread, cn._fn, thread, table.unpack(args))
 
 			for i = count, len + 1, -1 do
 				args[i] = nil
